@@ -1,0 +1,79 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: wrap;
+    font-size: 2rem;
+    font-family: 'Ariel', sans-serif;
+    padding-top: 3%;
+    padding-bottom: 3%;
+}
+
+h1 {
+    width : 100%;
+    margin: auto;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+h2 {
+    width: 100%;
+    margin: auto;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+input {
+    border: 0;
+    background: transparent;
+}
+
+textarea:focus, input:focus{
+    outline: none;
+}
+
+.parent-container {
+    width : 95%;
+    height : 95%;
+}
+
+.equation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    margin-top: -3px;
+}
+
+.equation-container:focus-within {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    border-color: #40A7E9;
+    z-index: 100;
+}
+
+.input {
+    width : 68%;
+    height : 100%;
+    overflow: scroll;
+    font-size: inherit;
+}
+
+.selector {
+    width : 10%;
+    height : 100%;
+    font-size: inherit;
+}
+
+.output {
+    width : 18%;
+    height : 100%;
+    white-space: nowrap;
+    overflow: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    font-size: inherit;
+}

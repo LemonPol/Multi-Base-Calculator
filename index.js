@@ -1,7 +1,9 @@
-const equationBox = document.getElementById('equation-box');
-const equationOutputDecimal = document.getElementById('equation-output-dec');
-const equationOutputHex = document.getElementById('equation-output-hex');
-const equationOutputBinary = document.getElementById('equation-output-bin');
+const equationBox = document.getElementById("equation-box");
+const equationOutputDecimal = document.getElementById("equation-output-dec");
+const equationOutputHex = document.getElementById("equation-output-hex");
+const equationOutputBinary = document.getElementById("equation-output-bin");
+
+var equationArray = [];
 
 function fetchGroups(s) {
 
@@ -12,7 +14,7 @@ function fetchGroups(s) {
     // Toxenize parenthesis
     for (let i = 0; i < s.length; i++) {
 
-        if (s.charAt(i) == '(') {
+        if (s.charAt(i) == "(") {
             groupDepth++;
             tokenList.push({
                 "type" : "open",
@@ -21,7 +23,7 @@ function fetchGroups(s) {
             });
         }
 
-        if (s.charAt(i) == ')') {
+        if (s.charAt(i) == ")") {
             groupDepth--;
             tokenList.push({
                 "type" : "close",
@@ -68,7 +70,7 @@ function fetchGroups(s) {
 function evaluateEquation(input) {
 
     if (!parenthesisComplete(input)) {
-        return;
+        return ["","",""];
     }
 
     valueStack = [];
@@ -138,9 +140,14 @@ function evaluateEquation(input) {
         valueStack.push(doMath(valueStack.pop(), valueStack.pop(), operatorStack.pop()));
     }
 
-    return [valueStack[0], valueStack[0].toString(16), valueStack[0].toString(2)]
+    if (valueStack.length > 0 && !isNaN(valueStack[0])) {
+        return [valueStack[0], valueStack[0].toString(16), valueStack[0].toString(2)]
+    } else {
+        return ["","",""];
+    }
 
 }
+
 
 function doMath(t1, t2, op) {
     switch(op) {
@@ -164,6 +171,11 @@ function getPrecedence(op) {
 
 function parenthesisComplete(s) {
     let result = 0;
+
+    if (s == "") {
+        return false;
+    }
+
     for (let i = 0; i < s.length; i++) {
         if (s.charAt(i) == "(") {
             result++;
@@ -174,8 +186,76 @@ function parenthesisComplete(s) {
     return result == 0;
 }
 
-equationBox.addEventListener('input', () => {
-    equationOutputDecimal.innerHTML = evaluateEquation(equationBox.value)[0];
-    equationOutputHex.innerHTML = evaluateEquation(equationBox.value)[1];
-    equationOutputBinary.innerHTML = evaluateEquation(equationBox.value)[2];
-});
+var containerNum = 0;
+
+function createNewInput() {
+    let newContainer = document.createElement("div");
+    newContainer.classList.add("equation-container");
+    newContainer.id = containerNum++;
+
+    let newInput = document.createElement("input");
+    newInput.type = "text";
+    newInput.classList.add("input");
+    newInput.id = "input_" + containerNum; 
+
+    let newOutput = document.createElement("p");
+    newOutput.classList.add("output");
+    newOutput.textContent = "= ";
+    newOutput.id = "output_" + containerNum; 
+
+    let newSelector = document.createElement("select");
+    newSelector.classList.add("selector");
+    newSelector.innerHTML = `
+        <option value="0">Dec</option>
+        <option value="1">Hex</option>
+        <option value="2">Bin</option>
+    `;
+    newSelector.id = "selector_" + containerNum;
+
+    newContainer.appendChild(newInput);
+    newContainer.appendChild(newOutput);
+    newContainer.appendChild(newSelector);
+
+    let container = document.getElementById("container");
+    container.appendChild(newContainer);
+
+    equationArray.push({
+        "container" : newContainer,
+        "input" : newInput,
+    });
+
+    let deleteKeyPressed = false;
+
+    newInput.addEventListener("keydown", (event) => {
+        let index = equationArray.findIndex(elem => elem.container == newContainer);
+        if (event.key == "Backspace" && newInput.value == "" && equationArray.length > 1) {
+            deleteKeyPressed = true;
+            equationArray.splice(index, 1);
+            newContainer.remove();
+            newInput.remove();
+            index == 0 ? equationArray[index].input.focus() : equationArray[index-1].input.focus();
+            return;
+        }
+        if (event.key != "Backspace" && event.key != "ArrowUp" && newInput == equationArray[equationArray.length-1].input) {
+            createNewInput();
+        }
+        if (event.key == "ArrowUp" && index != 0) {
+            equationArray[index-1].input.focus();
+        }
+        if (event.key == "Enter" || event.key == "ArrowDown") {
+            equationArray[index+1].input.focus();
+        }
+        console.log(event.key);
+    });
+
+    newInput.addEventListener("input", () => {
+        newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
+    });
+
+    newSelector.addEventListener("input", () => {
+        newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
+    })
+
+}
+
+createNewInput();

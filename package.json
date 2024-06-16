@@ -1,0 +1,11 @@
+{
+  "name": "multi-base-calculator",
+  "version": "1.0.0",
+  "description": "Calculator supporting simultaneous processing of Binary, Hex, and Decimal numeral bases.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
