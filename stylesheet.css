@@ -9,20 +9,6 @@ body {
     padding-bottom: 3%;
 }
 
-h1 {
-    width : 100%;
-    margin: auto;
-    text-align: center;
-    font-family: 'Courier New', monospace;
-}
-
-h2 {
-    width: 100%;
-    margin: auto;
-    text-align: center;
-    font-family: 'Courier New', monospace;
-}
-
 input {
     border: 0;
     background: transparent;
@@ -43,6 +29,8 @@ textarea:focus, input:focus{
     align-items: center;
     border-style: solid;
     margin-top: -3px;
+    padding-left: 2%;
+    padding-right: 2%;
 }
 
 .equation-container:focus-within {
@@ -56,24 +44,51 @@ textarea:focus, input:focus{
 }
 
 .input {
-    width : 68%;
+    width: 60%;
     height : 100%;
     overflow: scroll;
     font-size: inherit;
-}
-
-.selector {
-    width : 10%;
-    height : 100%;
-    font-size: inherit;
+    padding-right: 3rem;
 }
 
 .output {
-    width : 18%;
+    width: 25%;
     height : 100%;
     white-space: nowrap;
     overflow: scroll;
     -ms-overflow-style: none;
     scrollbar-width: none;
     font-size: inherit;
+}
+
+.button-container {
+    width: 15%;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding:  10px;
+    border: none;
+    background-color: #eee;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+}
+
+.toggle-btn:hover {
+    background-color: #ddd;
+}
+
+.toggle-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.toggle-btn:not(:last-child) {
+    border-right: 1px solid #ccc;
 }

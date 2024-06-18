@@ -1,9 +1,7 @@
-const equationBox = document.getElementById("equation-box");
-const equationOutputDecimal = document.getElementById("equation-output-dec");
-const equationOutputHex = document.getElementById("equation-output-hex");
-const equationOutputBinary = document.getElementById("equation-output-bin");
-
 var equationArray = [];
+var containerNum = 0;
+
+let parentContainer = document.getElementById("parent");
 
 function fetchGroups(s) {
 
@@ -122,14 +120,14 @@ function evaluateEquation(input) {
             }
 
             while (operatorStack[operatorStack.length - 1] != "(") {
-                valueStack.push(doMath(valueStack.pop(), valueStack.pop(), operatorStack.pop()));
+                valueStack.push(performOperation (valueStack.pop(), valueStack.pop(), operatorStack.pop()));
             }
             operatorStack.pop();
         }
 
         if (input.charAt(i) == "+" || input.charAt(i) == "-" || input.charAt(i) == "*" || input.charAt(i) == "/" || input.charAt(i) == "^") {
             while (operatorStack.length > 0 && getPrecedence(operatorStack[operatorStack.length-1]) >= getPrecedence(input.charAt(i))) {
-                valueStack.push(doMath(valueStack.pop(), valueStack.pop(), operatorStack.pop()));
+                valueStack.push(performOperation (valueStack.pop(), valueStack.pop(), operatorStack.pop()));
             }
             operatorStack.push(input.charAt(i));
         }
@@ -137,7 +135,7 @@ function evaluateEquation(input) {
     }
 
     while (operatorStack.length > 0) {
-        valueStack.push(doMath(valueStack.pop(), valueStack.pop(), operatorStack.pop()));
+        valueStack.push(performOperation (valueStack.pop(), valueStack.pop(), operatorStack.pop()));
     }
 
     if (valueStack.length > 0 && !isNaN(valueStack[0])) {
@@ -148,8 +146,9 @@ function evaluateEquation(input) {
 
 }
 
+// Helper functions for math processing // 
 
-function doMath(t1, t2, op) {
+function performOperation (t1, t2, op) {
     switch(op) {
         case "+" : return t2 + t1;
         case "-" : return t2 - t1;
@@ -186,76 +185,131 @@ function parenthesisComplete(s) {
     return result == 0;
 }
 
-var containerNum = 0;
+function createEquationContainer() {
+    // Create new container for equation elements
+    let newEquationContainer = document.createElement("div");
+    newEquationContainer.classList.add("equation-container");
+    newEquationContainer.id = containerNum++;
 
-function createNewInput() {
-    let newContainer = document.createElement("div");
-    newContainer.classList.add("equation-container");
-    newContainer.id = containerNum++;
+    // Create fields for equation container
+    let newInput = createInput();
+    let newOutput = createOutput();
+    let newSelector = createSelector();
 
-    let newInput = document.createElement("input");
-    newInput.type = "text";
-    newInput.classList.add("input");
-    newInput.id = "input_" + containerNum; 
-
-    let newOutput = document.createElement("p");
-    newOutput.classList.add("output");
-    newOutput.textContent = "= ";
-    newOutput.id = "output_" + containerNum; 
-
-    let newSelector = document.createElement("select");
-    newSelector.classList.add("selector");
-    newSelector.innerHTML = `
-        <option value="0">Dec</option>
-        <option value="1">Hex</option>
-        <option value="2">Bin</option>
-    `;
-    newSelector.id = "selector_" + containerNum;
-
-    newContainer.appendChild(newInput);
-    newContainer.appendChild(newOutput);
-    newContainer.appendChild(newSelector);
-
-    let container = document.getElementById("container");
-    container.appendChild(newContainer);
+    // Append fields to equation container
+    newEquationContainer.appendChild(newInput);
+    newEquationContainer.appendChild(newOutput);
+    newEquationContainer.appendChild(newSelector.buttonContainer);
+    parentContainer.appendChild(newEquationContainer);
 
     equationArray.push({
-        "container" : newContainer,
+        "container" : newEquationContainer,
         "input" : newInput,
     });
 
-    let deleteKeyPressed = false;
-
+    // @todo - document
     newInput.addEventListener("keydown", (event) => {
-        let index = equationArray.findIndex(elem => elem.container == newContainer);
-        if (event.key == "Backspace" && newInput.value == "" && equationArray.length > 1) {
-            deleteKeyPressed = true;
-            equationArray.splice(index, 1);
-            newContainer.remove();
-            newInput.remove();
-            index == 0 ? equationArray[index].input.focus() : equationArray[index-1].input.focus();
-            return;
-        }
-        if (event.key != "Backspace" && event.key != "ArrowUp" && newInput == equationArray[equationArray.length-1].input) {
-            createNewInput();
-        }
-        if (event.key == "ArrowUp" && index != 0) {
-            equationArray[index-1].input.focus();
-        }
-        if (event.key == "Enter" || event.key == "ArrowDown") {
-            equationArray[index+1].input.focus();
-        }
-        console.log(event.key);
+        processInput(event, newInput, newEquationContainer);
     });
 
+    // @todo - document
     newInput.addEventListener("input", () => {
-        newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
+        updateOutput(newInput, newOutput, newSelector);
     });
 
-    newSelector.addEventListener("input", () => {
-        newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
-    })
+    // @todo - document
+    for (let i = 0; i < 3; i++) {
+        newSelector.buttonArray[i].addEventListener('click', () => {
+            const buttons = document.getElementsByName(newSelector.buttonArray[i].name);
+            buttons.forEach(btn => btn.classList.remove('active'));
+            newSelector.buttonArray[i].classList.add('active');
+            newSelector.value = newSelector.buttonArray[i].value;
+            updateOutput(newInput, newOutput, newSelector);
+        });
+    }
+
+    updateOutput(newInput, newOutput, newSelector);
 
 }
 
-createNewInput();
+// @todo - document
+function updateOutput(newInput, newOutput, newSelector) {
+    console.log(newSelector);
+    newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
+}
+
+// @todo - document
+function processInput(event, input, container) {
+    let index = equationArray.findIndex(elem => elem.container == container);
+    if (event.key == "Backspace" && input.value == "" && equationArray.length > 1) {
+        equationArray.splice(index, 1);
+        container.remove();
+        input.remove();
+        index == 0 ? equationArray[index].input.focus() : equationArray[index-1].input.focus();
+        return;
+    }
+    if (event.key != "Backspace" && event.key != "ArrowUp" && input == equationArray[equationArray.length-1].input) {
+        createEquationContainer();
+    }
+    if (event.key == "ArrowUp" && index != 0) {
+        equationArray[index-1].input.focus();
+    }
+    if (event.key == "Enter" || event.key == "ArrowDown") {
+        equationArray[index+1].input.focus();
+    }
+    console.log(event.key);
+}
+
+function createInput() {
+    let newInput = document.createElement("input");
+    newInput.type = "text";
+    newInput.classList.add("input");
+    newInput.id = "input_" + containerNum;
+    return newInput;
+}
+
+function createOutput() {
+    let newOutput = document.createElement("p");
+    newOutput.classList.add("output");
+    newOutput.textContent = "= ";
+    newOutput.id = "output_" + containerNum;
+    return newOutput;
+}
+
+function createSelector() {
+    let buttonContainer = document.createElement("div");
+    let labels = ["Dec", "Hex", "Bin"];
+    let buttonArray = [];
+
+    buttonContainer.classList.add("button-container");
+
+    function createButton(value, label) {
+        let newButton = document.createElement("button");
+        newButton.classList.add("toggle-btn");
+        newButton.id = "btn_" + containerNum + "_" + value;
+        newButton.name = "btn_" + containerNum;
+        newButton.textContent = label;
+        newButton.value = value;
+    
+        return newButton;
+    }
+
+    for (let i = 0; i < 3; i++) {
+        let button = createButton(i, labels[i]);
+        buttonContainer.appendChild(button);
+        buttonArray[i] = button;
+    }
+
+    buttonArray[0].classList.add('active');
+
+    return {
+        "buttonContainer" : buttonContainer,
+        "buttonArray" : buttonArray,
+        "value" : 0,
+    }
+
+}
+
+
+
+createEquationContainer();
