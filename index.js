@@ -104,6 +104,11 @@ function evaluateEquation(input) {
                 i++;
             }
 
+            // Check if number is implicitly multiplying parenthesis 
+            if (input.charAt(i) == "(") {
+                input = input.slice(0, i+1) + "*" + input.slice(i+1);
+            }
+
             // Processing done, add to value stack
             valueStack.push(currentVal);
 
@@ -207,17 +212,17 @@ function createEquationContainer() {
         "input" : newInput,
     });
 
-    // @todo - document
+    // Register handling for character pre-processing
     newInput.addEventListener("keydown", (event) => {
         processInput(event, newInput, newEquationContainer);
     });
 
-    // @todo - document
+    // Register handling for output updating
     newInput.addEventListener("input", () => {
         updateOutput(newInput, newOutput, newSelector);
     });
 
-    // @todo - document
+    // Register each selection button 
     for (let i = 0; i < 3; i++) {
         newSelector.buttonArray[i].addEventListener('click', () => {
             const buttons = document.getElementsByName(newSelector.buttonArray[i].name);
@@ -232,19 +237,20 @@ function createEquationContainer() {
 
 }
 
-// @todo - document
+// Function to update the output field of an equation box
 function updateOutput(newInput, newOutput, newSelector) {
-    console.log(newSelector);
     newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
 }
 
-// @todo - document
+// Function to process character input
 function processInput(event, input, container) {
     let index = equationArray.findIndex(elem => elem.container == container);
     if (event.key == "Backspace" && input.value == "" && equationArray.length > 1) {
-        equationArray.splice(index, 1);
         container.remove();
         input.remove();
+        equationArray.splice(index, 1);
+        event.preventDefault();
+        console.log(index);
         index == 0 ? equationArray[index].input.focus() : equationArray[index-1].input.focus();
         return;
     }
@@ -257,7 +263,7 @@ function processInput(event, input, container) {
     if (event.key == "Enter" || event.key == "ArrowDown") {
         equationArray[index+1].input.focus();
     }
-    console.log(event.key);
+    //console.log(event.key);
 }
 
 function createInput() {

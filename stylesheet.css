@@ -62,7 +62,7 @@ textarea:focus, input:focus{
 }
 
 .button-container {
-    width: 15%;
+    width: 15rem;
     border: 2px solid #ccc;
     border-radius: 10px;
     overflow: hidden;
