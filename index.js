@@ -2,6 +2,7 @@ var equationArray = [];
 var containerNum = 0;
 
 let parentContainer = document.getElementById("parent");
+let variableMap = new Map();
 
 function fetchGroups(s) {
 
@@ -114,6 +115,27 @@ function evaluateEquation(input) {
 
         }
 
+        // Check if token is variable (text)
+        if ((input.charCodeAt(i) >= 65 && input.charCodeAt(i) <= 90) || (input.charCodeAt(i) >= 97 && input.charCodeAt(i) <= 122)) {
+
+            let currentVal = "";
+
+            // Handle multi-character variables
+            while (i < input.length && ((input.charCodeAt(i) >= 65 && input.charCodeAt(i) <= 90) || (input.charCodeAt(i) >= 97 && input.charCodeAt(i) <= 122))) {
+                currentVal += input.charAt(i);
+                i++;
+            }
+
+            // Check if number is implicitly multiplying parenthesis 
+            if (input.charAt(i) == "(") {
+                input = input.slice(0, i+1) + "*" + input.slice(i+1);
+            }
+
+            // Processing done, add to value stack
+            valueStack.push(currentVal);
+
+        }
+
         if (input.charAt(i) == "(") {
             operatorStack.push("(");
         }
@@ -130,7 +152,7 @@ function evaluateEquation(input) {
             operatorStack.pop();
         }
 
-        if (input.charAt(i) == "+" || input.charAt(i) == "-" || input.charAt(i) == "*" || input.charAt(i) == "/" || input.charAt(i) == "^") {
+        if (input.charAt(i) == "+" || input.charAt(i) == "-" || input.charAt(i) == "*" || input.charAt(i) == "/" || input.charAt(i) == "^" || input.charAt(i) == "=") {
             while (operatorStack.length > 0 && getPrecedence(operatorStack[operatorStack.length-1]) >= getPrecedence(input.charAt(i))) {
                 valueStack.push(performOperation (valueStack.pop(), valueStack.pop(), operatorStack.pop()));
             }
@@ -154,17 +176,32 @@ function evaluateEquation(input) {
 // Helper functions for math processing // 
 
 function performOperation (t1, t2, op) {
+    
+    if (variableMap.has(t1)) {
+        t1 = variableMap.get(t1);
+    }
+
+    if (variableMap.has(t2)) {
+        t2 = variableMap.get(t2);
+    }
+    
     switch(op) {
         case "+" : return t2 + t1;
         case "-" : return t2 - t1;
         case "*" : return t2 * t1;
         case "/" : return t1 == 0 ? 0 : parseInt(t2 / t1); 
         case "^" : return Math.pow(t2,t1);
+        case "=" : {
+            if (typeof t2 === "string") {
+                variableMap.set(t2, t1);
+            }
+        }
     }
 }
 
 function getPrecedence(op) {
     switch(op) {
+        case "=" : return -1;
         case "+" : return 0;
         case "-" : return 0;
         case "*" : return 1;
@@ -210,6 +247,8 @@ function createEquationContainer() {
     equationArray.push({
         "container" : newEquationContainer,
         "input" : newInput,
+        "output" : newOutput,
+        "selector" : newSelector,
     });
 
     // Register handling for character pre-processing
@@ -219,7 +258,7 @@ function createEquationContainer() {
 
     // Register handling for output updating
     newInput.addEventListener("input", () => {
-        updateOutput(newInput, newOutput, newSelector);
+        updateOutput();
     });
 
     // Register each selection button 
@@ -229,17 +268,20 @@ function createEquationContainer() {
             buttons.forEach(btn => btn.classList.remove('active'));
             newSelector.buttonArray[i].classList.add('active');
             newSelector.value = newSelector.buttonArray[i].value;
-            updateOutput(newInput, newOutput, newSelector);
+            updateOutput();
         });
     }
 
-    updateOutput(newInput, newOutput, newSelector);
+    updateOutput();
 
 }
 
 // Function to update the output field of an equation box
-function updateOutput(newInput, newOutput, newSelector) {
-    newOutput.innerHTML = "= " + evaluateEquation(newInput.value)[newSelector.value];
+function updateOutput() {
+    variableMap.clear();
+    for (let i = 0; i < equationArray.length; i++) {
+        equationArray[i].output.innerHTML = "= " + evaluateEquation(equationArray[i].input.value)[equationArray[i].selector.value];
+    }
 }
 
 // Function to process character input
