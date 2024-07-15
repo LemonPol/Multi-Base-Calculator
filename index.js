@@ -4,6 +4,19 @@ var containerNum = 0;
 let parentContainer = document.getElementById("parent");
 let variableMap = new Map();
 
+const helpText = document.getElementById('helpText');
+const popup = document.getElementById('popup');
+
+helpText.addEventListener('click', () => {
+    popup.style.display = 'flex';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === popup) {
+        popup.style.display = 'none';
+    }
+});
+
 function fetchGroups(s) {
 
     let groupDepth = 0;
@@ -131,6 +144,11 @@ function evaluateEquation(input) {
                 input = input.slice(0, i+1) + "*" + input.slice(i+1);
             }
 
+            // Check if variable is defineed
+            if (variableMap.has(currentVal)) {
+                currentVal = variableMap.get(currentVal);
+            }
+
             // Processing done, add to value stack
             valueStack.push(currentVal);
 
@@ -194,6 +212,7 @@ function performOperation (t1, t2, op) {
         case "=" : {
             if (typeof t2 === "string") {
                 variableMap.set(t2, t1);
+                return t1;
             }
         }
     }
